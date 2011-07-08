@@ -215,6 +215,76 @@ TestCase("Collision", {
         assertFalse(crossingsMultiplyTest(triangle, vec3.create([2, 3, 0])));
     },
 
+    test__pointInTriangle: function () {
+        var triangle = [
+            vec3.create([0, 0, 0]),
+            vec3.create([0, 5, 0]),
+            vec3.create([3, 0, 0])
+        ];
+
+        assertTrue(crossingsMultiplyTest(triangle, vec3.create([1, 1, 0])));
+        assertFalse(crossingsMultiplyTest(triangle, vec3.create([2, 3, 0])));
+    },
+
+    test__testPlaneSphere: function () {
+
+        var A = {
+            c: vec3.create([2, 2, 0]),
+            r: 2
+        };
+        var B = {
+            c: vec3.create([2, 2, 0]),
+            r: 1
+        };
+        var C = {
+            c: vec3.create([399, 2, 0]),
+            r: 1
+        };
+
+        var PlaneX = {
+            n: vec3.create([1, 0, 0]), //plane normal
+            d: 0 // dot(n, p) for given point p on the plane
+        };
+
+        var PlaneX400 = {
+            n: vec3.create([1, 0, 0]), //plane normal
+            d: 400 // dot(n, p) for given point p on the plane
+        };
+
+        assertTrue(testSpherePlane(A, PlaneX));
+        assertFalse(testSpherePlane(B, PlaneX));
+        assertTrue(testSpherePlane(C, PlaneX400));
+    },
+
+    test__testPlaneAABB: function () {
+
+        var A = {
+            min: vec3.create([-1, -1, 0]),
+            max: vec3.create([2, 3, 0])
+        };
+
+        var B = {
+            min: vec3.create([1, 1, 0]),
+            max: vec3.create([2, 3, 0])
+        };
+        var C = {
+            min: vec3.create([1, 1, 0]),
+            max: vec3.create([400, 3, 0])
+        };
+
+        var PlaneX = {
+            n: vec3.create([1, 0, 0]), //plane normal
+            d: 0 // dot(n, p) for given point p on the plane
+        };
+        var PlaneX400 = {
+            n: vec3.create([1, 0, 0]), //plane normal
+            d: 400 // dot(n, p) for given point p on the plane
+        };
+
+        assertTrue(testAABBPlane(A, PlaneX));
+        assertFalse(testAABBPlane(B, PlaneX));
+        assertTrue(testAABBPlane(C, PlaneX400));
+    },
+
     test__empty: function () {}
 });
-

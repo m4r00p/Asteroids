@@ -125,14 +125,18 @@ app.core.Object.define("app.controller.Game", {
             //handle keyboard input
             this.__keyboard.loop();
 
-            //move
-            this.__move();
+            //TODO Iterate over all objects and for each perform move and collision test
+            //for () {
+            // move one
+            // collision test
+            //    * broad phase early out
+            //    * narrow phase
+            //        * bounding box test
+            //        * polygon test
+            //}
 
-            // game rulz
+            // move escaping objects back to the stage
             this.__fixBoundaries();
-
-            //detect colisions
-            this.__detectCollisions();
 
             // view part
             this.__space.render();
@@ -203,70 +207,6 @@ app.core.Object.define("app.controller.Game", {
                     space.addShape(new app.view.Shape(object));
                 }
             }
-        },
-
-        __simpleCollision: function (objectA, objectB) {
-            var pow = Math.pow;
-
-            if (Math.sqrt(
-                pow(objectA.getX() - objectB.getX(), 2) +
-                pow(objectA.getY() - objectB.getY(), 2)
-                ) < objectA.getRadius() + objectB.getRadius()) {
-
-                return true;
-            }
-
-            return false;
-        },
-
-        __checkCollision: function (objectA, objectB) {
-            if (objectA && objectB && this.__simpleCollision(objectA, objectB)) {
-                this.fireDataEvent("collision", [objectA, objectB]);
-            }
-        },
-
-        __casting: function (objectA) {
-            var objects = this.__objects,
-                casted = [],
-                objectI;
-
-            for (var i = 0, lenI = objects.length; i < lenI; i++) {
-                objectI = objects[i];
-
-                if (objectA !== objectI) {
-                    casted.push(objectI);
-                }
-            }
-
-            return casted;
-        },
-
-        __detectCollisions: function () {
-            var objects = this.__objects,
-                casted;
-
-            for (var i = 0, lenI = objects.length; i < lenI; i++) {
-
-                objectI = objects[i];
-                casted  = this.__casting(objectI);
-
-                for (var j = 0, lenJ = casted.length; j < lenJ; j++) {
-                    objectJ = casted[j];
-
-                    this.__checkCollision(objectI, objectJ);
-                }
-            }
-        },
-
-        __move: function () {
-            var objects = this.__objects,
-            now = Date.now() / 1000;
-
-            for (var i = 0, len = objects.length; i < len; i++) {
-                objects[i].move(now - this.__time);
-            }
-
-            this.__time = now;
         },
 
         __fixBoundaries: function () {

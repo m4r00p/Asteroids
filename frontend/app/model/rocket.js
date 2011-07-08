@@ -1,19 +1,21 @@
 app.core.Object.define("app.model.Rocket", {
     extend: app.model.Shape,
-    constructor: function (x, y) {
+    constructor: function (position) {
         arguments.callee.prototype.uper.apply(this, arguments); //call parent constructor
 
         this.__radius = 5;
     },
     statics: {},
     members: {
-        __initVertices: [{x: 0, y: -10}, {x: -8, y: 10}, {x: 0, y: 6}, {x: 8, y: 10}],
-        __vertices: null,
+        __vertices: [
+            vec3.create([0,-10, 0]),
+            vec3.create([-8, 10, 0]),
+            vec3.create([0, 6, 0]),
+            vec3.create([8, 10, 0])],
 
-        __x: null,
-        __y: null,
-
-        __size: null,
+        __position: null,
+        __velocity: null,
+        __rotation: null,
 
         type: 3
     }

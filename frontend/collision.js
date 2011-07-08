@@ -18,6 +18,40 @@ var AABBmm = {
     max: vec3.create([2, 2, 0])
 };
 
+var PlaneX = {
+    n: vec3.create([1, 0, 0]), //plane normal
+    d: 0 // dot(n, p) for given point p on the plane
+};
+
+var PlaneY = {
+    n: vec3.create([0, 1, 0]), //plane normal
+    d: 0 // dot(n, p) for given point p on the plane
+};
+
+var PlaneX400 = {
+    n: vec3.create([1, 0, 0]), //plane normal
+    d: 400 // dot(n, p) for given point p on the plane
+};
+
+var PlaneY400 = {
+    n: vec3.create([0, 1, 0]), //plane normal
+    d: 400 // dot(n, p) for given point p on the plane
+};
+
+function computePlane(a, b, c) {
+    var p = {};
+
+    p.n = vec3.normalize(vec3.cross(
+        vec3.subtract(b, a, vec3.create()),
+        vec3.subtract(c, a, vec3.create()),
+        vec3.create()
+    ));
+
+    p.d = vec3.dot(p.n, a);
+
+    return p;
+}
+
 /**
  * Returns indices of min and max point.
  *
@@ -162,6 +196,42 @@ function testAABBAABBcr (a, b) {
     return true;
 }
 
+function testSpherePlane(sphere, plane) {
+    // For a normalized plane (|p.n| = 1), evaluating the plane equation
+    // for a point gives the signed distance of the point to the plane
+    var dist = vec3.dot(sphere.c, plane.n) - plane.d;
+    // If sphere center within +/-radius from plane, plane intersects sphere
+    return Math.abs(dist) <= sphere.r;
+}
+
+// Determine whether sphere s fully behind (inside negative halfspace of) plane p
+function insideSpherePlane(sphere, plane) {
+    var dist = vec3.dot(sphere.c, plane.n) - plane.d;
+    return dist < -s.r;
+}
+
+// Determine whether sphere s intersects negative halfspace of plane p
+function testSphereHalfspace(sphere, plane) {
+    var dist = vec3.dot(shere.c, plane.n) - plane.d;
+    return dist <= sphere.r;
+}
+
+// Test if AABB b intersects plane p
+function testAABBPlane(aabb, plane) {
+    // These two lines not necessary with a (center, extents) AABB representation
+    var c = vec3.scale(vec3.add(aabb.max, aabb.min, vec3.create()), 0.5); // Compute AABB center
+    var e = vec3.subtract(aabb.max, c, vec3.create()); // Compute positive extents
+
+    // Compute the projection interval radius of b onto L(t) = b.c + t * p.n
+    var r = e[0]*Math.abs(plane.n[0])
+        + e[1]*Math.abs(plane.n[1])
+        + e[2]*Math.abs(plane.n[2]);
+
+    // Compute distance of box center from plane
+    var s = vec3.dot(plane.n, c) - plane.d;
+    // Intersection occurs when distance s falls within [-r,+r] interval
+    return Math.abs(s) <= r;
+}
 
 function crossingsMultiplyTest(pgon, point) {
     var	j, yflag0, yflag1, inside_flag; // int
@@ -307,3 +377,22 @@ function testOBBOBB(a, b) {
     return 1;
 }
 
+function pointInTriangle(point, a, b, c) {
+    // Translate point and triangle so that point lies at origin
+    a = vec3.subtract(a, p, vec3.create());
+    b = vec3.subtract(b, p, vec3.create());
+    c = vec3.subtract(c, p, vec3.create());
+
+    // Compute normal vectors for triangles pab and pbc
+    var u = vec3.cross(b, c, vec3.create());
+    var v = vec3.cross(c, a, vec3.create());
+
+    // Make sure they are both pointing in the same direction
+    if (vec3.dot(u, v) < 0.0) return 0;
+    // Compute normal vector for triangle pca
+    var w = vec3.cross(a, b, vec3.create());
+    // Make sure it points in the same direction as the first two
+    if (vec3.dot(u, w) < 0.0) return 0;
+    // Otherwise P must be in (or on) the triangle
+    return 1;
+}

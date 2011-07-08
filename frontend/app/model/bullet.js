@@ -1,19 +1,22 @@
 app.core.Object.define("app.model.Bullet", {
     extend: app.model.Shape,
-    constructor: function (x, y) {
+    constructor: function (position) {
         arguments.callee.prototype.uper.apply(this, arguments); //call parent constructor
 
         this.__radius = 2;
+        this.__position = position;
     },
     statics: {},
     members: {
-        __initVertices: [{x: -1, y: -1}, {x: -1, y: 1}, {x: 1, y: 1}, {x: 1, y: -1}],
-        __vertices: null,
+        __vertices: [
+            vec3.create([-1, -1, 0]),
+            vec3.create([-1, 1, 0]),
+            vec3.create([1, 1, 0]),
+            vec3.create([1, -1, 0])],
 
-        __x: null,
-        __y: null,
-
-        __size: null,
+        __position: null,
+        __velocity: null,
+        __rotation: null,
 
         type: 2
     }

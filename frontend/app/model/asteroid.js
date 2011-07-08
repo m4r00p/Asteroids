@@ -1,19 +1,29 @@
 app.core.Object.define("app.model.Asteroid", {
     extend: app.model.Shape,
-    constructor: function (x, y) {
+    constructor: function (position) {
         arguments.callee.prototype.uper.apply(this, arguments); //call parent constructor
 
-        this.__x = x;
-        this.__y = y;
+        this.__position = position;
     },
     statics: {},
     members: {
-        __initVertices: [{x: -30, y: -20}, {x: -35, y: 0}, {x: -30, y: 20}, {x: -20, y: 20},  {x: -10, y: 30},
-            {x: 20, y: 20}, {x: 25, y: 5}, {x: 20, y: -20}, {x: 10, y: -15}, {x: 0, y: -30}],
-        __vertices: null,
+        __vertices: [
+            vec3.create([-30, -20, 0]),
+            vec3.create([-35, 0, 0]),
+            vec3.create([-30, 20, 0]),
+            vec3.create([-20, 20, 0]),
+            vec3.create([-10, 30, 0]),
+            vec3.create([20, 20, 0]),
+            vec3.create([25, 5, 0]),
+            vec3.create([20, -20, 0]),
+            vec3.create([10, -15, 0]),
+            vec3.create([0, -30, 0])],
 
-        __x: null,
-        __y: null,
+        __position: null,
+        __velocity: null,
+        __rotation: null,
+
+        __size: null,
 
         type: 1
 

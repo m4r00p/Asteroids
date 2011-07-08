@@ -1,43 +1,32 @@
 app.core.Object.define("app.model.Shape", {
     extend: app.core.Object,
-    constructor: function (x, y, angle, speed, rotate, size) {
+    constructor: function (position, velocity, rotation, size) {
         arguments.callee.prototype.uper.apply(this, arguments); //call parent constructor
 
-        this.__x = x;
-        this.__y = y;
+        this.__position = position;
+        this.__velocity = velocity;
 
-        this.__angle = angle || 0;
-        this.__speed = speed || 0;
         this.__size  = size || 5;
 
-        this.__rotate = rotate || 0;
-
-        this.changeDirection(this.__angle);
+        this.__rotation = rotation || 0;
 
         this.__init();
     },
     statics: {},
     members: {
-        __initVertices: [{x: -10, y: -10}, {x: -10, y: 10}, {x: 10, y: 10}, {x: 10, y: -10}],
-        __vertices: null,
+        __vertices: [
+            vec3.create([-10, -10, 0]),
+            vec3.create([-10, 10, 0]),
+            vec3.create([10, 10, 0]),
+            vec3.create([10, -10, 0])],
 
         __boundingBox: null,
 
-        __angle: null,
+        __position: null,
+        __velocity: null,
+        __rotation: null,
 
         __size: null,
-
-        __speed: 0,
-        __speedX: 0,
-        __speedY: 0,
-
-        __x: null,
-        __y: null,
-
-        __direction: 0,
-        __rotate: 0,
-
-        __radius: 0,
 
         __init: function () {
             var x = this.__x,
@@ -48,10 +37,11 @@ app.core.Object.define("app.model.Shape", {
 
             for (var i = 0, len = initVertices.length, vertex; i < len; i++) {
                 vertex = initVertices[i];
-                vertices.push({
-                    x: x + size/5 * vertex.x,
-                    y: y + size/5 * vertex.y
-                });
+                vertices.push(vec3.create([
+                   x + size/5 * vertex[0],
+                   y + size/5 * vertex[1],
+                   0
+               ]));
             }
 
             this.__radius = 25 * size/5;
@@ -61,8 +51,6 @@ app.core.Object.define("app.model.Shape", {
 
             this.__createBoundingBox();
         },
-
-
 
         __createBoundingBox: function () {
            //TODO
@@ -80,11 +68,11 @@ app.core.Object.define("app.model.Shape", {
             for (var x, y, i = 0, len = vertices.length, vertex; i < len; i++) {
                 vertex = vertices[i];
 
-                x = vertex.x;
-                y = vertex.y;
+                x = vertex[0];
+                y = vertex[1];
 
-                vertex.x = (cos * (x - xOrigin)) - (sin * (y - yOrigin)) + xOrigin;
-                vertex.y = (sin * (x - xOrigin)) + (cos * (y - yOrigin)) + yOrigin;
+                vertex[0] = (cos * (x - xOrigin)) - (sin * (y - yOrigin)) + xOrigin;
+                vertex[1] = (sin * (x - xOrigin)) + (cos * (y - yOrigin)) + yOrigin;
             }
         },
 
@@ -121,8 +109,8 @@ app.core.Object.define("app.model.Shape", {
             for (var i = 0, len = vertices.length, vertex; i < len; i++) {
                 vertex = vertices[i];
 
-                vertex.x -= dx;
-                vertex.y -= dy;
+                vertex[0] -= dx;
+                vertex[1] -= dy;
             }
 
             if (this.__rotate) {
@@ -140,7 +128,7 @@ app.core.Object.define("app.model.Shape", {
             for (var i = 0, len = vertices.length, vertex; i < len; i++) {
                 vertex = vertices[i];
 
-                vertex.x += dx;
+                vertex[0] += dx;
             }
         },
 
@@ -154,7 +142,7 @@ app.core.Object.define("app.model.Shape", {
             for (var i = 0, len = vertices.length, vertex; i < len; i++) {
                 vertex = vertices[i];
 
-                vertex.y += dy;
+                vertex[1] += dy;
             }
         },
 
@@ -189,7 +177,7 @@ app.core.Object.define("app.model.Shape", {
         createBullet: function () {
             var vertex = this.__vertices[0];
 
-            return new app.model.Bullet(vertex.x, vertex.y, this.__angle, 200);
+            return new app.model.Bullet(vertex[0], vertex[1], this.__angle, 200);
         },
 
         destroy: function () {

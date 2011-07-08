@@ -65,10 +65,10 @@ app.core.Object.define("app.view.Space", {
             this.__ctx    = ctx;
             this.__canvas = space;
 
-            space.width  = this.__width  = win.innerWidth;
-            space.height = this.__height = win.innerHeight;
+            space.width  = this.__width  = 500;//= win.innerWidth;
+            space.height = this.__height = 500;//= win.innerHeight;
 
-            win.addEventListener("resize", this.__onResize.bind(this), false);
+            //win.addEventListener("resize", this.__onResize.bind(this), false);
 
             doc.body.insertBefore(space, doc.body.firstChild);
         },
