@@ -42,8 +42,36 @@ app.core.Object.define("app.controller.Game", {
                         this.__rand(minY + 20, maxY - 20),
                         0]),
                     vec3.create([
-                        this.__rand(0, 0),
-                        this.__rand(0, 0),
+                        this.__rand(0, 0.1),
+                        this.__rand(0, 0.1),
+                        0]),
+                    this.__rand(0, 360)
+                );
+
+                objects.push(object);
+                space.addShape(new app.view.Shape(object));
+            }
+
+        },
+
+        __createBullets: function (number) {
+            var object, objects = this.__objects,
+                boundaries = this.__space.getBoundaries(),
+                minX = boundaries[0],
+                minY = boundaries[1],
+                maxX = boundaries[2],
+                maxY = boundaries[3],
+                space = this.__space;
+
+            for (var i = 0; i < number; i++) {
+                object = new app.model.Bullet(
+                    vec3.create([
+                        this.__rand(minX + 20, maxX - 20),
+                        this.__rand(minY + 20, maxY - 20),
+                        0]),
+                    vec3.create([
+                        this.__rand(0, 0.25),
+                        this.__rand(0, 0.25),
                         0]),
                     this.__rand(0, 360)
                 );
@@ -100,6 +128,7 @@ app.core.Object.define("app.controller.Game", {
             this.__createRocket();
 
             this.__createAsteroid(4);
+//            this.__createBullets(1000);
 
             this.__registerEvent();
 
@@ -148,7 +177,7 @@ app.core.Object.define("app.controller.Game", {
                 width: 500,
                 height: 500
             };
-            var quadTree = new QuadTree(bounds, true, 6, 4);
+            var quadTree = new QuadTree(bounds, true, 4, 4);
 
             for (var object, radius, i = 0, len = objects.length; i < len; i++) {
                 object = objects[i];
@@ -164,10 +193,10 @@ app.core.Object.define("app.controller.Game", {
 
             var count = 0;
 
-            for (var object, items, i = 0, leni = objects.length; i < leni; i++) {
-                object = objects[i];
+            for (var objectA, items, i = 0, leni = objects.length; i < leni; i++) {
+                objectA = objects[i];
 
-                object.integrate((+new Date()) - time);
+                objectA.integrate((+new Date()) - time);
 
                 items = quadTree.retrieve({
                     x: object.getX(),
@@ -179,27 +208,27 @@ app.core.Object.define("app.controller.Game", {
 
                 count += items.length;
 
-                test: for (var item, j = 0, lenj = items.length; j < lenj; j++) {
-                    item = items[j];
+                test: for (var item, objectB, j = 0, lenj = items.length; j < lenj; j++) {
+                    objectB = items[j].obj;
 
-                    if (object != item.obj && testSphereSphere(
-                        object.__boundingBox,
-                        item.obj.__boundingBox)) {
+                    if (objectA != objectB && testSphereSphere(
+                        objectA.__boundingBox,
+                        objectB.__boundingBox)) {
 
-                        for(var vertex, k = 0, lenk = object.__vertices.length; k < lenk; k++) {
-                            vertex = object.__vertices[k];
-                            if (crossingsMultiplyTest(item.obj.__vertices,
-                                vec3.add(vertex, vec3.subtract(object.__position, item.obj.__position, vec3.create()), vec3.create()))) {
-                                this.fireDataEvent("collision", [object, item.obj]);
+                        for(var vertex, k = 0, lenk = objectA.__vertices.length; k < lenk; k++) {
+                            vertex = objectA.__vertices[k];
+                            if (crossingsMultiplyTest(objectB.__vertices,
+                                vec3.add(vertex, vec3.subtract(objectA.__position, objectB.__position, vec3.create()), vec3.create()))) {
+                                this.fireDataEvent("collision", [objectA, objectB]);
                                 continue test;
                             }
                         }
 
-                        for(var vertex, k = 0, lenk = item.obj.__vertices.length; k < lenk; k++) {
-                            vertex = item.obj.__vertices[k];
-                            if (crossingsMultiplyTest(object.__vertices,
-                                vec3.add(vertex, vec3.subtract(item.obj.__position, object.__position, vec3.create()), vec3.create()))) {
-                                this.fireDataEvent("collision", [object, item.obj]);
+                        for(var vertex, k = 0, lenk = objectB.__vertices.length; k < lenk; k++) {
+                            vertex = objectB.__vertices[k];
+                            if (crossingsMultiplyTest(objectA.__vertices,
+                                vec3.add(vertex, vec3.subtract(objectB.__position, objectA.__position, vec3.create()), vec3.create()))) {
+                                this.fireDataEvent("collision", [objectA, objectB]);
                                 continue test;
                             }
                         }

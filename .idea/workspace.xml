@@ -35,7 +35,7 @@
       <file leaf-file-name="game.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/frontend/app/controller/game.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="133" column="16" selection-start="4133" selection-end="4133" vertical-scroll-proportion="0.0">
+            <state line="128" column="0" selection-start="3929" selection-end="3929" vertical-scroll-proportion="0.66477275">
               <folding />
             </state>
           </provider>
@@ -457,11 +457,6 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/frontend/app/core/object.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/frontend/app/event/keyboard.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
@@ -554,9 +549,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/frontend/lib/ptinpoly.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/frontend/app/controller/game.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="133" column="16" selection-start="4133" selection-end="4133" vertical-scroll-proportion="0.0">
+        <state line="128" column="0" selection-start="3929" selection-end="3929" vertical-scroll-proportion="0.66477275">
           <folding />
         </state>
       </provider>
