@@ -1,69 +1,53 @@
 app.core.Object.define("app.model.Shape", {
     extend: app.core.Object,
-    constructor: function (position, velocity, rotation, size) {
+    constructor: function (position, velocity, rotation) {
         arguments.callee.prototype.uper.apply(this, arguments); //call parent constructor
 
-        this.__position = position;
-        this.__velocity = velocity;
-
-        this.__size  = size || 5;
-
+        this.__position = position || vec3.create();
+        this.__velocity = velocity || vec3.create();
         this.__rotation = rotation || 0;
+
+        this.__forceAccumulator = vec3.create();
+        this.__angle = this.__rotation || -90;
+
+        this.__direction = vec3.create([
+            Math.cos(this.__angle * Math.PI/180),
+            Math.sin(this.__angle * Math.PI/180),
+            0
+        ]);
 
         this.__init();
     },
     statics: {},
     members: {
-        __vertices: [
-            vec3.create([-10, -10, 0]),
-            vec3.create([-10, 10, 0]),
-            vec3.create([10, 10, 0]),
-            vec3.create([10, -10, 0])],
+        __vertices: null,
 
         __boundingBox: null,
 
         __position: null,
         __velocity: null,
         __rotation: null,
+        __direction: null,
 
-        __size: null,
+        __inverseMass: 1,
 
         __init: function () {
-            var x = this.__x,
-                y = this.__y,
-                size = this.__size,
-                initVertices = this.__initVertices,
-                vertices = this.__vertices = [];
-
-            for (var i = 0, len = initVertices.length, vertex; i < len; i++) {
-                vertex = initVertices[i];
-                vertices.push(vec3.create([
-                   x + size/5 * vertex[0],
-                   y + size/5 * vertex[1],
-                   0
-               ]));
-            }
-
-            this.__radius = 25 * size/5;
-
-            this.__speedX = this.__speed * Math.sin(this.__direction);
-            this.__speedY = this.__speed * Math.cos(this.__direction);
-
             this.__createBoundingBox();
         },
 
+        __forceAccumulator: null,
+
         __createBoundingBox: function () {
-           //TODO
+           this.__boundingBox = ritterSphere(this.__vertices);
         },
 
         rotate: function (angle) {
             var vertices = this.__vertices,
                 cos      = Math.cos(angle * Math.PI/180),
-                sin      = Math.sin(angle * Math.PI/180),
-                xOrigin  = this.__x,
-                yOrigin  = this.__y;
+                sin      = Math.sin(angle * Math.PI/180);
 
             this.__angle += angle;
+            this.__angle = this.__angle % 360;
 
             for (var x, y, i = 0, len = vertices.length, vertex; i < len; i++) {
                 vertex = vertices[i];
@@ -71,103 +55,60 @@ app.core.Object.define("app.model.Shape", {
                 x = vertex[0];
                 y = vertex[1];
 
-                vertex[0] = (cos * (x - xOrigin)) - (sin * (y - yOrigin)) + xOrigin;
-                vertex[1] = (sin * (x - xOrigin)) + (cos * (y - yOrigin)) + yOrigin;
+                vertex[0] = (cos * x) - (sin * y);
+                vertex[1] = (sin * x) + (cos * y);
             }
         },
 
         changeDirection: function (angle) {
-            this.__direction -= angle * Math.PI/180;
+            this.rotate(angle);
         },
 
-        increaseSpeed: function () {
-            var speed = 10,
-                speedX, speedY,
-                abs = Math.abs;
+        increaseVelocity: function () {
+            var velocity  = this.__velocity,
+                direction = vec3.create([
+            Math.cos(this.__angle * Math.PI/180),
+            Math.sin(this.__angle * Math.PI/180),
+            0
+        ]);
 
-            speedX = speed * Math.sin(this.__direction);
-            speedY = speed * Math.cos(this.__direction);
+            vec3.scale(direction, 16.6/1000);
+            vec3.add(velocity, direction);
 
-            if (abs(this.__speedX + speedX) < 100) {
-                this.__speedX += speedX;
-            }
-
-            if (abs(this.__speedY + speedY) < 100) {
-                this.__speedY += speedY;
-            }
         },
 
-        move: function (time) {
-            var vertices = this.__vertices,
-            dx = this.__speedX * time,
-            dy = this.__speedY * time;
+        integrate: function (duration) {
+           vec3.add(this.__position,
+               vec3.scale(this.__velocity, duration, vec3.create()));
 
+            //reposition bounding box
+            this.__boundingBox.c[0] = this.__position[0];
+            this.__boundingBox.c[1] = this.__position[1];
 
-            this.__x -= dx;
-            this.__y -= dy;
+        },
 
-            for (var i = 0, len = vertices.length, vertex; i < len; i++) {
-                vertex = vertices[i];
+        setVelocity: function (value) {
+            this.__velocity = value;
+        },
 
-                vertex[0] -= dx;
-                vertex[1] -= dy;
-            }
-
-            if (this.__rotate) {
-                this.rotate(this.__rotate);
-            }
+        getVelocity: function (value) {
+            return this.__velocity;
         },
 
         setX: function (value) {
-
-            var vertices = this.__vertices,
-            dx = value - this.__x;
-
-            this.__x = value;
-
-            for (var i = 0, len = vertices.length, vertex; i < len; i++) {
-                vertex = vertices[i];
-
-                vertex[0] += dx;
-            }
+            this.__position[0] = value;
         },
 
         setY: function (value) {
-
-            var vertices = this.__vertices,
-            dy = value - this.__y;
-
-            this.__y = value;
-
-            for (var i = 0, len = vertices.length, vertex; i < len; i++) {
-                vertex = vertices[i];
-
-                vertex[1] += dy;
-            }
+            this.__position[1]= value;
         },
 
         getX: function () {
-            return this.__x;
+            return this.__position[0];
         },
 
         getY: function () {
-            return this.__y;
-        },
-
-        getSize: function () {
-            return this.__size;
-        },
-
-        getDirection: function () {
-            return this.__direction;
-        },
-
-        setDirection: function (value) {
-            this.__direction = value;
-        },
-
-        getRadius: function () {
-            return this.__radius;
+            return this.__position[1];
         },
 
         getVertices: function () {
@@ -175,28 +116,42 @@ app.core.Object.define("app.model.Shape", {
         },
 
         createBullet: function () {
-            var vertex = this.__vertices[0];
+            var vertex = this.__vertices[0],
+            direction = vec3.create([
+                Math.cos(this.__angle * Math.PI/180),
+                Math.sin(this.__angle * Math.PI/180),
+                0
+            ]),
+            velocity = vec3.scale(direction, 0.25);
 
-            return new app.model.Bullet(vertex[0], vertex[1], this.__angle, 200);
+            vec3.add(velocity, this.__velocity);
+
+            return new app.model.Bullet(
+                vec3.create([
+                    vertex[0] + this.getX(),
+                    vertex[1] + this.getY(), 0]),
+                velocity,
+                0);
         },
 
         destroy: function () {
-            var junks = [],
-            size      = this.__size - 1,
-            speed = this.__speed,
-            rotate = this.__rotate,
-            angle = this.__angle,
-            x = this.__x,
-            y = this.__y;
+            //TODO destroy asteroid
+//            var junks = [],
+//            size      = this.__size - 1,
+//            speed = this.__speed,
+//            rotate = this.__rotate,
+//            angle = this.__angle,
+//            x = this.__x,
+//            y = this.__y;
 
-            if (this.type === 1 && size > 0) {
+//            if (this.type === 1 && size > 0) {
                 // asteroid and not smallest
-                junks.push(new app.model.Asteroid(x, y, angle + Math.random() * 90, speed * 1.75, rotate, size));
-                junks.push(new app.model.Asteroid(x, y, angle + 90 + Math.random() * 90, speed * 1.75, -rotate, size));
-                junks.push(new app.model.Asteroid(x, y, angle + 180 + Math.random() * 180, speed * 1.75, rotate, size));
-            }
+//                junks.push(new app.model.Asteroid(x, y, angle + Math.random() * 90, speed * 1.75, rotate, size));
+//                junks.push(new app.model.Asteroid(x, y, angle + 90 + Math.random() * 90, speed * 1.75, -rotate, size));
+//                junks.push(new app.model.Asteroid(x, y, angle + 180 + Math.random() * 180, speed * 1.75, rotate, size));
+//            }
 
-            return junks;
+//            return junks;
         }
     }
 });

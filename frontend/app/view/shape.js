@@ -10,7 +10,9 @@ app.core.Object.define("app.view.Shape", {
         __model: null,
 
         render: function (ctx) {
-            var current, next, vertices = this.__model.getVertices();
+            var current, next,
+                model = this.__model,
+                vertices = model.getVertices();
 
             ctx.beginPath();
             ctx.strokeStyle = 'white';
@@ -22,16 +24,22 @@ app.core.Object.define("app.view.Shape", {
 
                 
                 ctx.moveTo(
-                    current[0],
-                    current[1]
+                    current[0] + model.getX(),
+                    current[1] + model.getY()
                 );
                 ctx.lineTo(
-                    next[0],
-                    next[1]
+                    next[0] + model.getX(),
+                    next[1] + model.getY()
                 );
             }
 
             ctx.stroke();
+
+//            ctx.beginPath();
+//            ctx.arc(model.getX(), model.getY(), model.__boundingBox.r, 0, Math.PI*2, true);
+//
+//            ctx.stroke();
+//            ctx.closePath();
         }
     }
 });

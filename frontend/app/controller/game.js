@@ -37,12 +37,15 @@ app.core.Object.define("app.controller.Game", {
 
             for (var i = 0; i < number; i++) {
                 object = new app.model.Asteroid(
-                    this.__rand(minX + 20, maxX - 20),
-                    this.__rand(minY + 20, maxY - 20),
-                    this.__rand(0, 360),
-                    this.__rand(5, 20),
-                    this.__rand(1, 5),
-                    5
+                    vec3.create([
+                        this.__rand(minX + 20, maxX - 20),
+                        this.__rand(minY + 20, maxY - 20),
+                        0]),
+                    vec3.create([
+                        this.__rand(0, 0),
+                        this.__rand(0, 0),
+                        0]),
+                    this.__rand(0, 360)
                 );
 
                 objects.push(object);
@@ -56,7 +59,20 @@ app.core.Object.define("app.controller.Game", {
         },
 
         __createRocket: function (mine) {
-            var rocketModel      = new app.model.Rocket(200, 200);
+            var  boundaries = this.__space.getBoundaries(),
+                minX = boundaries[0],
+                minY = boundaries[1],
+                maxX = boundaries[2],
+                maxY = boundaries[3];
+
+            var rocketModel      = new app.model.Rocket(vec3.create([
+                this.__rand(minX + 20,maxX - 20),
+                this.__rand(minY + 20, maxY - 20),
+                0]),
+                vec3.create(),
+                0
+            );
+
             var rocketController = new app.controller.Rocket(rocketModel);
             var space            = this.__space;
 
@@ -83,13 +99,11 @@ app.core.Object.define("app.controller.Game", {
 
             this.__createRocket();
 
-            this.__createAsteroid(3);
+            this.__createAsteroid(4);
 
             this.__registerEvent();
 
             this.addListener("collision", this.__onCollision, this);
-
-            this.__time = Date.now() / 1000;
 
             var win = window;
 
@@ -122,8 +136,81 @@ app.core.Object.define("app.controller.Game", {
 
         __onRequestAnimationFrame: function () {
 
+            var objects = this.__objects,
+                time = this.__time || +new Date();
+
             //handle keyboard input
             this.__keyboard.loop();
+
+            var bounds = {
+                x:0,
+                y:0,
+                width: 500,
+                height: 500
+            };
+            var quadTree = new QuadTree(bounds, true, 6, 4);
+
+            for (var object, radius, i = 0, len = objects.length; i < len; i++) {
+                object = objects[i];
+                radius = object.__boundingBox.r;
+                quadTree.insert({
+                    x: object.getX(),
+                    y: object.getY(),
+                    height: radius * 2,
+                    width: radius * 2,
+                    obj: object
+                });
+            }
+
+            var count = 0;
+
+            for (var object, items, i = 0, leni = objects.length; i < leni; i++) {
+                object = objects[i];
+
+                object.integrate((+new Date()) - time);
+
+                items = quadTree.retrieve({
+                    x: object.getX(),
+                    y: object.getY(),
+                    height: radius * 2,
+                    width: radius * 2
+                });
+
+
+                count += items.length;
+
+                test: for (var item, j = 0, lenj = items.length; j < lenj; j++) {
+                    item = items[j];
+
+                    if (object != item.obj && testSphereSphere(
+                        object.__boundingBox,
+                        item.obj.__boundingBox)) {
+
+                        for(var vertex, k = 0, lenk = object.__vertices.length; k < lenk; k++) {
+                            vertex = object.__vertices[k];
+                            if (crossingsMultiplyTest(item.obj.__vertices,
+                                vec3.add(vertex, vec3.subtract(object.__position, item.obj.__position, vec3.create()), vec3.create()))) {
+                                this.fireDataEvent("collision", [object, item.obj]);
+                                continue test;
+                            }
+                        }
+
+                        for(var vertex, k = 0, lenk = item.obj.__vertices.length; k < lenk; k++) {
+                            vertex = item.obj.__vertices[k];
+                            if (crossingsMultiplyTest(object.__vertices,
+                                vec3.add(vertex, vec3.subtract(item.obj.__position, object.__position, vec3.create()), vec3.create()))) {
+                                this.fireDataEvent("collision", [object, item.obj]);
+                                continue test;
+                            }
+                        }
+
+                    }
+                }
+
+            }
+
+            this.__time = +new Date();
+
 
             //TODO Iterate over all objects and for each perform move and collision test
             //for () {
@@ -139,7 +226,7 @@ app.core.Object.define("app.controller.Game", {
             this.__fixBoundaries();
 
             // view part
-            this.__space.render();
+            this.__space.render(count, leni);
 
             if (!this.__end) {
                 this.__requestAnimationFrame();
@@ -154,49 +241,43 @@ app.core.Object.define("app.controller.Game", {
             result  = [];
 
             if (objectA.type === 3 || objectB.type === 3) {
+
+//                console.log([objectA, objectB]);
                 // end of the game collision with rocket
-                this.__end = true;
+//                this.__end = true;
             }
             else if ((objectA.type === 2 && objectB.type === 1) ||
                 (objectA.type === 1 && objectB.type === 2)) {
                 // bullet hit asteroid
 
-                var number = 6;
-                if (objectA.type === 1) {
-                    number -= objectA.getSize();
-                }
-                else {
-                    number -= objectB.getSize();
-                }
+                space.increaseScore(1);
 
-                space.increaseScore(number);
+//                var indexA = objects.indexOf(objectA);
+//                space.removeShape(objectA);
+//                objects.splice(indexA, 1);
+//
+//                var indexB = objects.indexOf(objectB);
+//                space.removeShape(objectB);
+//                objects.splice(indexB, 1);
 
-                var indexA = objects.indexOf(objectA);
-                space.removeShape(objectA);
-                objects.splice(indexA, 1);
-
-                var indexB = objects.indexOf(objectB);
-                space.removeShape(objectB);
-                objects.splice(indexB, 1);
-
-                result = result.concat(objectA.destroy());
-                result = result.concat(objectB.destroy());
+//                result = result.concat(objectA.destroy());
+//                result = result.concat(objectB.destroy());
 
             } else if (objectA.type === 1 && objectB.type === 1) {
                // asteroid hit asteroid change direction
-               objectA.setDirection(2*Math.PI/180 - objectA.getDirection());
-               objectB.setDirection(2*Math.PI/180 - objectB.getDirection());
+//               objectA.setDirection(2*Math.PI/180 - objectA.getDirection());
+//               objectB.setDirection(2*Math.PI/180 - objectB.getDirection());
 
 
             } else if (objectA.type === 2 && objectB.type === 2) {
                 // bullet hit bulled just destroy both
-                var indexA = objects.indexOf(objectA);
-                space.removeShape(objectA);
-                objects.splice(indexA, 1);
+//                var indexA = objects.indexOf(objectA);
+//                space.removeShape(objectA);
+//                objects.splice(indexA, 1);
 
-                var indexB = objects.indexOf(objectB);
-                space.removeShape(objectB);
-                objects.splice(indexB, 1);
+//                var indexB = objects.indexOf(objectB);
+//                space.removeShape(objectB);
+//                objects.splice(indexB, 1);
             }
 
             if (result && result.length) {
@@ -244,7 +325,7 @@ app.core.Object.define("app.controller.Game", {
                 space   = this.__space,
                 now = Date.now();
 
-            if (event && event[1] === app.event.Object.FIRE && this.__fireDelay + 500 < now) {
+            if (event && event[1] === app.event.Object.FIRE && this.__fireDelay + 250 < now) {
                 this.__fireDelay = now;
 
                 bullet = objects[0].createBullet();

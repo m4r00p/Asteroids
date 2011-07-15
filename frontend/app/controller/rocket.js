@@ -15,30 +15,16 @@ app.core.Object.define("app.controller.Rocket", {
             if (event) {
                 switch (event[1]) {
                     case app.event.Object.LEFT:
-                        this.rotateLeft();
+                        this.__model.changeDirection(5);
                         break;
                     case app.event.Object.RIGHT:
-                        this.rotateRight();
+                        this.__model.changeDirection(-5);
                         break;
                     case app.event.Object.UP:
-                        this.move();
+                        this.__model.increaseVelocity();
                         break;
                 }
             }
-        },
-
-        rotateLeft: function () {
-            this.__model.rotate(-15);
-            this.__model.changeDirection(-15);
-        },
-
-        rotateRight: function () {
-            this.__model.rotate(15);
-            this.__model.changeDirection(15);
-        },
-
-        move: function () {
-            this.__model.increaseSpeed();
         }
     }
 });

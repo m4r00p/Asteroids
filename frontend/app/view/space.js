@@ -31,7 +31,7 @@ app.core.Object.define("app.view.Space", {
             this.__canvas.height = this.__height = win.innerHeight;
         },
 
-        __drawFps: function () {
+        __drawFps: function (count, n) {
             var ctx = this.__ctx;
 
             if (Date.now() > this.__time + 1000) {
@@ -51,6 +51,8 @@ app.core.Object.define("app.view.Space", {
             ctx.fillText("Objs: " + this.__shapes.length, 6, 36);
             ctx.fill();
             ctx.fillText("Score: " + this.__score, 6, 56);
+            ctx.fill();
+            ctx.fillText("Tests: " + count + "/" + (n*(n-1)), 6, 76);
             ctx.fill();
         },
 
@@ -95,7 +97,7 @@ app.core.Object.define("app.view.Space", {
             }
         },
 
-        render: function () {
+        render: function (count, n) {
             var shape,
                 shapes = this.__shapes,
                 ctx    = this.__ctx;
@@ -104,7 +106,7 @@ app.core.Object.define("app.view.Space", {
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, this.__width, this.__height);
 
-            this.__drawFps();
+            this.__drawFps(count, n);
 
             for (var i = 0, len = shapes.length; i < len; i++) {
                 shape = shapes[i];
