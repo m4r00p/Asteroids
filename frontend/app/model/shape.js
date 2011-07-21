@@ -1,25 +1,19 @@
 app.core.Object.define("app.model.Shape", {
     extend: app.core.Object,
-    constructor: function (position, velocity, rotation) {
+    constructor: function (position, velocity, angularVelocity, orientation) {
         arguments.callee.prototype.uper.apply(this, arguments); //call parent constructor
 
         this.__position = position || vec3.create();
         this.__velocity = velocity || vec3.create();
-        this.__rotation = rotation || 0;
+        this.__angularVelocity = angularVelocity || 0;
 
-        this.__forceAccumulator = vec3.create();
-        this.__angle = this.__rotation || -90;
-
-        this.__direction = vec3.create([
-            Math.cos(this.__angle * Math.PI/180),
-            Math.sin(this.__angle * Math.PI/180),
-            0
-        ]);
+        this.__orientation =  orientation || 0;
 
         this.__init();
     },
     statics: {},
     members: {
+        __angularVelocity: null,
         __vertices: null,
 
         __boundingBox: null,
@@ -27,15 +21,11 @@ app.core.Object.define("app.model.Shape", {
         __position: null,
         __velocity: null,
         __rotation: null,
-        __direction: null,
 
-        __inverseMass: 1,
 
         __init: function () {
             this.__createBoundingBox();
         },
-
-        __forceAccumulator: null,
 
         __createBoundingBox: function () {
            this.__boundingBox = ritterSphere(this.__vertices);
@@ -46,8 +36,8 @@ app.core.Object.define("app.model.Shape", {
                 cos      = Math.cos(angle * Math.PI/180),
                 sin      = Math.sin(angle * Math.PI/180);
 
-            this.__angle += angle;
-            this.__angle = this.__angle % 360;
+            this.__orientation += angle;
+            this.__orientation = this.__orientation % 360;
 
             for (var x, y, i = 0, len = vertices.length, vertex; i < len; i++) {
                 vertex = vertices[i];
@@ -60,15 +50,15 @@ app.core.Object.define("app.model.Shape", {
             }
         },
 
-        changeDirection: function (angle) {
+        changeOrientation: function (angle) {
             this.rotate(angle);
         },
 
         increaseVelocity: function () {
             var velocity  = this.__velocity,
                 direction = vec3.create([
-            Math.cos(this.__angle * Math.PI/180),
-            Math.sin(this.__angle * Math.PI/180),
+            Math.cos(this.__orientation * Math.PI/180),
+            Math.sin(this.__orientation * Math.PI/180),
             0
         ]);
 
@@ -84,6 +74,10 @@ app.core.Object.define("app.model.Shape", {
             //reposition bounding box
             this.__boundingBox.c[0] = this.__position[0];
             this.__boundingBox.c[1] = this.__position[1];
+
+            if (this.__angularVelocity) {
+               this.rotate(this.__angularVelocity * duration/1000);
+            }
 
         },
 
@@ -118,8 +112,8 @@ app.core.Object.define("app.model.Shape", {
         createBullet: function () {
             var vertex = this.__vertices[0],
             direction = vec3.create([
-                Math.cos(this.__angle * Math.PI/180),
-                Math.sin(this.__angle * Math.PI/180),
+                Math.cos(this.__orientation * Math.PI/180),
+                Math.sin(this.__orientation * Math.PI/180),
                 0
             ]),
             velocity = vec3.scale(direction, 0.25);

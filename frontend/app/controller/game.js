@@ -98,7 +98,8 @@ app.core.Object.define("app.controller.Game", {
                 this.__rand(minY + 20, maxY - 20),
                 0]),
                 vec3.create(),
-                0
+                0,
+                -90
             );
 
             var rocketController = new app.controller.Rocket(rocketModel);

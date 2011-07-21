@@ -15,10 +15,10 @@ app.core.Object.define("app.controller.Rocket", {
             if (event) {
                 switch (event[1]) {
                     case app.event.Object.LEFT:
-                        this.__model.changeDirection(5);
+                        this.__model.changeOrientation(5);
                         break;
                     case app.event.Object.RIGHT:
-                        this.__model.changeDirection(-5);
+                        this.__model.changeOrientation(-5);
                         break;
                     case app.event.Object.UP:
                         this.__model.increaseVelocity();
